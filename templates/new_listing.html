@@ -1,0 +1,84 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Create New Listing</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="price" class="form-label">Price</label>
+            <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+        </div>
+        <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="location" name="location" placeholder="Enter city or region" required>
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select class="form-select" id="category" name="category" required>
+                <option value="">Select a category</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="images" class="form-label">Images (you can select multiple)</label>
+            <input type="file" class="form-control" id="images" name="images" accept="image/*" multiple>
+            <div id="image-preview-list" class="d-flex flex-wrap mt-2"></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Listing</button>
+    </form>
+    <a href="{{ url_for('listings') }}" class="btn btn-secondary mt-3">Back to Listings</a>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('images');
+        const preview = document.getElementById('image-preview-list');
+        input.addEventListener('change', function() {
+            preview.innerHTML = '';
+            const files = input.files;
+            if (!files || files.length === 0) return;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'me-2 mb-2 d-flex flex-column align-items-center image-item';
+                    div.setAttribute('data-index', i);
+                    div.style.width = '100px';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" style="width:100px;height:100px;object-fit:contain;border:1px solid #ccc;background:#fff;">
+                        <div class='form-check mt-1'>
+                          <input class='form-check-input cover-radio' type='radio' name='cover_index' id='cover_radio_${i}' value='${i}' ${i===0?'checked':''}>
+                          <label class='form-check-label small' for='cover_radio_${i}'>Set as cover</label>
+                        </div>
+                    `;
+                    preview.appendChild(div);
+                    // 绑定高亮逻辑
+                    div.querySelector('.cover-radio').addEventListener('change', updateCoverHighlight);
+                    updateCoverHighlight();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        function updateCoverHighlight() {
+            document.querySelectorAll('.cover-radio').forEach(function(radio) {
+                const parent = radio.closest('.image-item');
+                if (radio.checked) {
+                    parent.style.boxShadow = '0 0 0 2px #dc3545';
+                } else {
+                    parent.style.boxShadow = '';
+                }
+            });
+        }
+        updateCoverHighlight();
+    });
+    </script>
+</div>
+{% endblock %} 

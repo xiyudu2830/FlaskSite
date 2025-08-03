@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Carousel Test</title>
+    <style>
+        .image-wrapper { width: 300px; height: 200px; background: #fff; position: relative; }
+        .btn { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Carousel Test</h2>
+    <div class="image-wrapper">
+        <img id="listing-img-1" src="https://via.placeholder.com/300x200?text=Image+1" alt="Test Image" style="width:100%;height:100%;object-fit:contain;">
+        <button type="button" class="btn btn-light btn-sm position-absolute top-50 start-0 translate-middle-y p-0 border-0" style="z-index:2;width:32px;height:32px;opacity:0.8;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.9);" data-listing-id="1" data-direction="prev" aria-label="Previous"><span style="font-size:1.5em;line-height:1;">&#8592;</span></button>
+        <button type="button" class="btn btn-light btn-sm position-absolute top-50 end-0 translate-middle-y p-0 border-0" style="z-index:2;width:32px;height:32px;opacity:0.8;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.9);" data-listing-id="1" data-direction="next" aria-label="Next"><span style="font-size:1.5em;line-height:1;">&#8594;</span></button>
+    </div>
+
+    <script>
+    // Test carousel functionality
+    window.listingImages = {};
+    window.listingImageIndex = {};
+
+    function showImage(listingId, idx) {
+        var imgs = window.listingImages[listingId];
+        if (!imgs || imgs.length === 0) return;
+        if (idx < 0) idx = imgs.length - 1;
+        if (idx >= imgs.length) idx = 0;
+        window.listingImageIndex[listingId] = idx;
+        document.getElementById('listing-img-' + listingId).src = imgs[idx];
+        console.log('Image changed to index:', idx, 'URL:', imgs[idx]);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Test data
+        window.listingImages[1] = [
+            "https://via.placeholder.com/300x200?text=Image+1",
+            "https://via.placeholder.com/300x200?text=Image+2",
+            "https://via.placeholder.com/300x200?text=Image+3"
+        ];
+        window.listingImageIndex[1] = 0;
+        
+        var buttons = document.querySelectorAll('button[data-listing-id][data-direction]');
+        console.log('Found buttons:', buttons.length);
+        
+        // Set up event listeners
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var listingId = this.getAttribute('data-listing-id');
+                var direction = this.getAttribute('data-direction');
+                var idx = window.listingImageIndex[listingId] || 0;
+                console.log('Button clicked:', listingId, direction, idx);
+                console.log('Available images:', window.listingImages[listingId]);
+                if (direction === 'prev') {
+                    showImage(listingId, idx - 1);
+                } else {
+                    showImage(listingId, idx + 1);
+                }
+            });
+            
+            // Add hover effect
+            btn.addEventListener('mouseenter', function() {
+                this.style.opacity = '1';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.opacity = '0.8';
+            });
+        });
+        
+        console.log('Carousel initialized with listings:', Object.keys(window.listingImages));
+    });
+    </script>
+</body>
+</html> 

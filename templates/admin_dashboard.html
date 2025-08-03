@@ -1,0 +1,48 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Admin Dashboard</h2>
+    <hr>
+    <h4>Reports</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Listing</th>
+                <th>Reporter</th>
+                <th>Reason</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.id }}</td>
+                <td>{% if report.listing %}<a href="{{ url_for('listing_detail', listing_id=report.listing.id) }}">{{ report.listing.title }}</a>{% endif %}</td>
+                <td>{{ report.reporter.username }}</td>
+                <td>{{ report.reason }}</td>
+                <td>{{ report.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{% if report.resolved %}<span class="badge bg-success">Resolved</span>{% else %}<span class="badge bg-warning text-dark">Open</span>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">No reports.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+    <h4>Users</h4>
+    <ul>
+        {% for user in users %}
+        <li>{{ user.username }}{% if user.is_admin %} <span class="badge bg-info">Admin</span>{% endif %}</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <h4>Listings</h4>
+    <ul>
+        {% for listing in listings %}
+        <li><a href="{{ url_for('listing_detail', listing_id=listing.id) }}">{{ listing.title }}</a> ({{ listing.status }})</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %} 

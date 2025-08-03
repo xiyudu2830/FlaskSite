@@ -1,0 +1,10 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height:60vh;">
+  <div class="col-md-8 text-center">
+    <h1 class="display-4 mb-3">Welcome to the Second-Hand Trading Platform!</h1>
+    <p class="lead mb-4">Buy and sell used items easily, securely, and locally. Join our community and start trading today!</p>
+    <a href="{{ url_for('listings') }}" class="btn btn-primary btn-lg"><i class="bi bi-search"></i> Browse Listings</a>
+  </div>
+</div>
+{% endblock %} 

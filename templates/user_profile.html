@@ -1,0 +1,58 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>User Profile: {{ user.username }}</h2>
+    {% if avg_rating %}
+    <p><b>Average Rating:</b> {{ avg_rating }} / 5</p>
+    {% endif %}
+    <hr>
+    <h4>Recent Reviews</h4>
+    {% for review in reviews[:5] %}
+    <div class="mb-2">
+        <b>{{ review.reviewer.username }}</b> rated <b>{{ review.rating }}/5</b> on {{ review.timestamp.strftime('%Y-%m-%d') }}<br>
+        <span>{{ review.comment }}</span>
+    </div>
+    {% else %}
+    <p>No reviews yet.</p>
+    {% endfor %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            {% if user.avatar_filename %}
+            <img src="{{ url_for('avatar_file', filename=user.avatar_filename) }}" class="img-thumbnail" style="max-width:180px;">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" class="img-thumbnail" style="max-width:180px;">
+            {% endif %}
+            {% if current_user.is_authenticated and current_user.id == user.id %}
+            <form method="POST" enctype="multipart/form-data" class="mt-2">
+                <div class="mb-2">
+                    <input type="file" name="avatar" class="form-control" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Upload Avatar</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="col-md-9">
+            <h4>Listings by {{ user.username }}</h4>
+            <div class="row">
+                {% for listing in listings %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        {% if listing.image_filename %}
+                        <img src="{{ url_for('uploaded_file', filename=listing.image_filename) }}" class="card-img-top" alt="Listing Image">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text">${{ listing.price }}</p>
+                            <p class="card-text"><span class="badge bg-secondary">{{ listing.category }}</span></p>
+                            <a href="{{ url_for('listing_detail', listing_id=listing.id) }}" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p>{{ user.username }} has not posted any listings yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

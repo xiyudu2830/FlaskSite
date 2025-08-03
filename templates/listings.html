@@ -1,0 +1,165 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>All Listings</h2>
+    <form method="get" class="row g-3 mb-4 align-items-end">
+        <div class="col-md-2">
+            <select class="form-select" name="category">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="location">
+                <option value="">All Locations</option>
+                {% for loc in locations %}
+                <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="number" class="form-control" name="min_price" placeholder="Min Price" value="{{ min_price }}" min="0">
+        </div>
+        <div class="col-md-2">
+            <input type="number" class="form-control" name="max_price" placeholder="Max Price" value="{{ max_price }}" min="0">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="status">
+                <option value="">All Statuses</option>
+                <option value="Available" {% if selected_status == 'Available' %}selected{% endif %}>Available</option>
+                <option value="Reserved" {% if selected_status == 'Reserved' %}selected{% endif %}>Reserved</option>
+                <option value="Sold" {% if selected_status == 'Sold' %}selected{% endif %}>Sold</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="text" class="form-control" name="keyword" placeholder="Search by title or description" value="{{ keyword }}">
+        </div>
+        <div class="col-md-2 mt-2">
+            <select class="form-select" name="sort">
+                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+            </select>
+        </div>
+        <div class="col-md-2 mt-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+        <div class="col-md-2 mt-2">
+            <a href="{{ url_for('new_listing') }}" class="btn btn-success w-100">Create New Listing</a>
+        </div>
+    </form>
+    <div class="row">
+        {% for listing in listings %}
+        {% set cover_img = listing.images|selectattr('is_cover')|first or (listing.images[0] if listing.images) %}
+        <div class="col-md-4 mb-4">
+            <div class="card fixed-card h-100">
+                <div class="image-wrapper position-relative d-flex align-items-center justify-content-center" style="width:100%;aspect-ratio:4/3;max-width:100%;background:#fff;">
+                    {% if cover_img %}
+                    <img id="listing-img-{{ listing.id }}" src="{{ url_for('uploaded_file', filename=cover_img.filename) }}" alt="Listing Image" style="width:100%;height:100%;object-fit:contain;display:block;background:#fff;">
+                    {% if listing.images|length > 1 %}
+                    <button type="button" class="btn btn-light btn-sm position-absolute top-50 start-0 translate-middle-y p-0 border-0" style="z-index:2;width:32px;height:32px;opacity:0.8;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.9);" data-listing-id="{{ listing.id }}" data-direction="prev" aria-label="Previous"><span style="font-size:1.5em;line-height:1;">&#8592;</span></button>
+                    <button type="button" class="btn btn-light btn-sm position-absolute top-50 end-0 translate-middle-y p-0 border-0" style="z-index:2;width:32px;height:32px;opacity:0.8;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.9);" data-listing-id="{{ listing.id }}" data-direction="next" aria-label="Next"><span style="font-size:1.5em;line-height:1;">&#8594;</span></button>
+                    {% endif %}
+                    {% else %}
+                    <img src="https://via.placeholder.com/400x300?text=No+Image" alt="No Image" style="width:100%;height:100%;object-fit:contain;display:block;background:#fff;">
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ listing.title }}</h5>
+                        {% if current_user.is_authenticated and listing.seller != current_user %}
+                        <form method="POST" action="{{ url_for('favorite_listing', listing_id=listing.id) }}" style="display:inline;">
+                            {% if listing in current_user.favorites %}
+                            <button type="submit" formaction="{{ url_for('unfavorite_listing', listing_id=listing.id) }}" class="btn btn-link p-0"><span style="color:#e25555; font-size:1.5em;">&#10084;</span></button>
+                            {% else %}
+                            <button type="submit" class="btn btn-link p-0"><span style="color:#bbb; font-size:1.5em;">&#9825;</span></button>
+                            {% endif %}
+                        </form>
+                        {% endif %}
+                    </div>
+                    <p class="card-text">${{ listing.price }}</p>
+                    <p class="card-text"><span class="badge bg-secondary">{{ listing.category }}</span>
+                        {% if listing.status == 'Available' %}
+                        <span class="badge bg-success">Available</span>
+                        {% elif listing.status == 'Reserved' %}
+                        <span class="badge bg-warning text-dark">Reserved</span>
+                        {% elif listing.status == 'Sold' %}
+                        <span class="badge bg-danger">Sold</span>
+                        {% endif %}
+                        {% if listing.location %}
+                        <span class="badge bg-info text-dark">{{ listing.location }}</span>
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('listing_detail', listing_id=listing.id) }}" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// Image carousel functionality
+window.listingImages = {};
+window.listingImageIndex = {};
+
+function showImage(listingId, idx) {
+    var imgs = window.listingImages[listingId];
+    if (!imgs || imgs.length === 0) return;
+    if (idx < 0) idx = imgs.length - 1;
+    if (idx >= imgs.length) idx = 0;
+    window.listingImageIndex[listingId] = idx;
+    document.getElementById('listing-img-' + listingId).src = imgs[idx];
+}
+
+// Initialize data and event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    var uploadBaseUrl = "{{ url_for('uploaded_file', filename='') }}";
+    
+    // Initialize image data from Jinja2 template
+    {% for listing in listings %}
+    window.listingImages[{{ listing.id }}] = [
+        {% for img in listing.images %}
+        "{{ url_for('uploaded_file', filename=img.filename) }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    window.listingImageIndex[{{ listing.id }}] = 0;
+    {% endfor %}
+    
+    // Set up event listeners
+    var buttons = document.querySelectorAll('button[data-listing-id][data-direction]');
+    console.log('Found buttons:', buttons.length);
+    
+    buttons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var listingId = this.getAttribute('data-listing-id');
+            var direction = this.getAttribute('data-direction');
+            var idx = window.listingImageIndex[listingId] || 0;
+            console.log('Button clicked:', listingId, direction, idx);
+            console.log('Available images:', window.listingImages[listingId]);
+            if (direction === 'prev') {
+                showImage(listingId, idx - 1);
+            } else {
+                showImage(listingId, idx + 1);
+            }
+        });
+        
+        // Add hover effect for better UX
+        btn.addEventListener('mouseenter', function() {
+            this.style.opacity = '1';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.opacity = '0.8';
+        });
+    });
+    
+    console.log('Carousel initialized with listings:', Object.keys(window.listingImages));
+    console.log('Total buttons found:', document.querySelectorAll('button[data-listing-id][data-direction]').length);
+});
+</script>
+
+{% endblock %} 
